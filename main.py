@@ -1,16 +1,8 @@
-# This is a sample Python script.
+from vtl.image.screenshot import ScreenshooterPIL
+from vtl.recorder.time_lapse import TimeLapseRecorder
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+screen_shooter = ScreenshooterPIL(0, 0, 1920, 1080)
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+diff_threshold = 100 / (1920 * 1080)
+recoder = TimeLapseRecorder(screen_shooter, fps=1, diff_threshold=diff_threshold)
+recoder.record()
