@@ -148,7 +148,7 @@ class TimeLapseRecorder:
         Quit the program
         """
         if self.is_recording:
-            self.cancel()
+            self._cancel()
 
         print('Quitting the program')
         exit(0)
