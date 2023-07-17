@@ -81,10 +81,10 @@ class TimeLapseRecorder:
     @property
     def default_key_binds(self) -> Dict[str, str]:
         return {
-            '1': 'start_new',
-            '2': 'stop',
-            '3': 'cancel',
-            '0': 'quit',
+            'F5': 'start_new',
+            'F6': 'stop',
+            'F7': 'cancel',
+            'F8': 'quit',
         }
 
     @property
@@ -163,13 +163,8 @@ class TimeLapseRecorder:
             return
 
         if self.last_frame is not None:
-            # A pixel is considered different if it has at least one different channel
-            # Let's compute difference using this
-
             difference = np.sum(np.any(self.last_frame != frame, axis=-1)) / self.area
 
-            # similarity = np.sum(self.last_frame == frame) / self.area
-            # difference = 1.0 - similarity
             if difference < self.diff_threshold:
                 return
 
