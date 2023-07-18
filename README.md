@@ -42,7 +42,7 @@ recoder.record()
 
 The default keys to control the recorder are:
 
-- `F5`: To start recording
+- `F5`: To start new recording
 - `F6`: To stop recording
 - `F7`: To cancel recording
 - `F8`: To exit the program
