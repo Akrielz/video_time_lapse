@@ -31,7 +31,7 @@ Here is a simple example that records the main screen of a full HD monitor
 
 ```py
 from vtl.image.screenshot import ScreenshooterPIL
-from vtl.recorder.time_lapse import TimeLapseRecorder
+from vtl.recorder.recorder import TimeLapseRecorder
 
 screen_shooter = ScreenshooterPIL(x_min=0, y_min=0, x_max=1920, y_max=1080)
 

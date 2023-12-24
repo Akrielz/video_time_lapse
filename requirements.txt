@@ -1,5 +1,7 @@
 pynput
 mss
-nummpy
+numpy
 opencv-python
 Pillow
+screeninfo
+streamlit

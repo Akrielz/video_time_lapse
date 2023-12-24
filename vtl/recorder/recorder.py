@@ -1,13 +1,11 @@
 import os
 from datetime import datetime
-from threading import Thread
-from typing import Dict, Optional
+from typing import Optional
 
 import cv2
 import numpy as np
 
 from vtl.image.screenshot import Screenshooter
-from vtl.keyboard.key_listener import KeyListener
 
 
 class TimeLapseRecorder:
@@ -17,7 +15,6 @@ class TimeLapseRecorder:
             screen_shooter: Screenshooter,
             *,
             fps: int,
-            key_binds: Optional[Dict[str, str]] = None,
             save_dir: Optional[str] = None,
             diff_threshold: float = 0.0,
     ):
@@ -36,25 +33,23 @@ class TimeLapseRecorder:
                 - 'start': Start the recording
                 - 'stop': Stop the recording
                 - 'cancel' Cancel the recording
-                - 'quit': Quit the program
-
-            If None, the following key binds will be used:
-                - '1': Start the recording
-                - '2': Stop the recording
-                - '3': Cancel the recording
-                - '0': Quit the program
 
         save_dir: Optional[str]
             The path to save the video to. If None, the video will be saved in the current directory
         """
 
-        # Save the arguments
+        self.update_args(screen_shooter, fps=fps, save_dir=save_dir, diff_threshold=diff_threshold)
+
+    def update_args(
+            self,
+            screen_shooter: Screenshooter,
+            *,
+            fps: int,
+            save_dir: Optional[str] = None,
+            diff_threshold: float = 0.0,
+    ):
         self.screen_shooter = screen_shooter
         self.fps = fps
-
-        self.key_binds = key_binds
-        if self.key_binds is None:
-            self.key_binds = self.default_key_binds
 
         self.save_dir = save_dir
         if self.save_dir is None:
@@ -69,23 +64,8 @@ class TimeLapseRecorder:
         self.is_recording = False
         self.last_frame = None
         self.area = self.output_size[0] * self.output_size[1]
-        
-        # Prepare the key listener
-        self.on_press_map = {
-            keybind: getattr(self, f"_{action}")
-            for keybind, action in self.key_binds.items()
-        }
-        
-        self.key_listener = KeyListener(self.on_press_map)
 
-    @property
-    def default_key_binds(self) -> Dict[str, str]:
-        return {
-            'F5': 'start_new',
-            'F6': 'stop',
-            'F7': 'cancel',
-            'F8': 'quit',
-        }
+        self.recorded_frames = 0
 
     @property
     def default_save_dir(self) -> str:
@@ -100,15 +80,13 @@ class TimeLapseRecorder:
 
         # Prepare the file
         current_date = f'{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-        file_path = f'{self.save_dir}/{current_date}.avi'
+        file_path = f'{self.save_dir}/{current_date}.mp4'
         self.file_path = file_path
 
         # Prepare the video stream
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         self.video_stream = cv2.VideoWriter(file_path, fourcc, self.fps, self.output_size, True)
 
-        # Update state
-        print(f'Started recording to {file_path}')
         self.is_recording = True
         self.last_frame = None
 
@@ -120,12 +98,13 @@ class TimeLapseRecorder:
             return
 
         # Update state
-        print(f'Stopped recording to {self.file_path}')
         self.is_recording = False
 
         # Stop recording and save the video
         self.video_stream.release()
         self.video_stream = None
+
+        self.recorded_frames = 0
 
     def _cancel(self):
         """
@@ -135,13 +114,14 @@ class TimeLapseRecorder:
             return
 
         # Update state
-        print(f'Cancelled recording to {self.file_path}')
         self.is_recording = False
 
         # Stop recording and delete the video
         self.video_stream.release()
         os.remove(self.file_path)
         self.video_stream = None
+
+        self.recorded_frames = 0
 
     def _quit(self):
         """
@@ -150,7 +130,6 @@ class TimeLapseRecorder:
         if self.is_recording:
             self._cancel()
 
-        print('Quitting the program')
         exit(0)
 
     def _record_frame(self):
@@ -170,22 +149,19 @@ class TimeLapseRecorder:
 
         self.video_stream.write(frame)
         self.last_frame = frame
-        print("Added frame")
+
+        self.recorded_frames += 1
+
+    async def _record_frame_async(self):
+        self._record_frame()
 
     def _record_frames(self):
         while True:
             self._record_frame()
-        
-    def record(self):
-        """
-        Start recording
-        """
 
-        thread_listener = Thread(target=self.key_listener.listen)
-        thread_recoder = Thread(target=self._record_frames)
-
-        # Start both of them
-        thread_recoder.start()
-        thread_listener.start()
-
-        
+    async def _record_frames_async(self):
+        while True:
+            try:
+                await self._record_frame_async()
+            except Exception:
+                pass

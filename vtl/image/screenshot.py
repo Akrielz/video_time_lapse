@@ -83,6 +83,7 @@ class ScreenshooterMSS(Screenshooter):
         img_sct = self.mss.grab(bounding_box)
         img_np = np.array(img_sct)
         img_np = img_np[:, :, :3]
+        img_np = image_bgr_to_rgb(img_np)
 
         if self.resize_res is None:
             return img_np
@@ -108,7 +109,7 @@ class ScreenshooterPIL(Screenshooter):
         if self.resize_res:
             img_pil = img_pil.resize(self.resize_res)
 
-        return image_bgr_to_rgb(np.array(img_pil))
+        return np.array(img_pil)
 
 
 def image_bgr_to_rgb(img: np.array) -> np.array:
