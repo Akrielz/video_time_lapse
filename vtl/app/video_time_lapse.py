@@ -64,7 +64,8 @@ class VideoTimeLapse:
     def selected_screen_shooter(self):
         return self.screen_shooters[self.selected_monitor_index]
 
-    def check_if_dir_exists_or_possible(self, dir_path: str):
+    @staticmethod
+    def check_if_dir_exists_or_possible(dir_path: str):
         # Check if the directory exists
         if os.path.exists(dir_path) and os.path.isdir(dir_path):
             return True
@@ -73,7 +74,8 @@ class VideoTimeLapse:
             st.error("The path you entered is not a directory.")
             return False
 
-        return True
+        st.error("The path you entered does not exist.")
+        return False
 
     def select_save_dir(self, dir_path: str):
         if not self.check_if_dir_exists_or_possible(dir_path):
