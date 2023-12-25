@@ -135,9 +135,10 @@ class VideoTimeLapse:
             st.session_state.time_lapse_recorder = self.time_lapse_recorder
 
     async def async_write_frames(self):
-        st.write(f"Frames recorded so far: {self.time_lapse_recorder.recorded_frames}")
+        while True:
+            st.write(f"Frames recorded so far: {self.time_lapse_recorder.recorded_frames}")
+            await asyncio.sleep(1)
 
     def record(self):
         self.run()
         asyncio.run(self.time_lapse_recorder._record_frames_async())
-        asyncio.run(self.async_write_frames())
