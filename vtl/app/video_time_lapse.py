@@ -20,11 +20,11 @@ class VideoTimeLapse:
             for i in range(len(self.monitor_manager))
         ]
 
-        self.init_session_state()
+        self._init_session_state()
 
         self.time_lapse_recorder = st.session_state.time_lapse_recorder
 
-    def init_session_state(self):
+    def _init_session_state(self):
         if "selected_monitor_index" not in st.session_state:
             st.session_state.selected_monitor_index = 0
 
@@ -37,7 +37,7 @@ class VideoTimeLapse:
         if "fps" not in st.session_state:
             st.session_state.fps = 30
 
-        self.select_monitor()
+        self._select_monitor()
 
         if "time_lapse_recorder" not in st.session_state:
             st.session_state.time_lapse_recorder = TimeLapseRecorder(
@@ -52,10 +52,10 @@ class VideoTimeLapse:
         return st.session_state.time_lapse_recorder.is_recording
 
     @staticmethod
-    def update_monitor_state(index: int):
+    def _update_monitor_state(index: int):
         st.session_state.selected_monitor_index = index
 
-    def select_monitor(self):
+    def _select_monitor(self):
         index = st.session_state.selected_monitor_index
         self.selected_monitor_index = index
         self.selected_monitor = self.monitor_manager[index]
@@ -77,13 +77,13 @@ class VideoTimeLapse:
         st.error("The path you entered does not exist.")
         return False
 
-    def select_save_dir(self, dir_path: str):
+    def _select_save_dir(self, dir_path: str):
         if not self.check_if_dir_exists_or_possible(dir_path):
             return
 
         st.session_state.save_dir = dir_path
 
-    def run(self):
+    def display_interface(self):
         st.title("VTL Interface")
         st.write("First, select the monitor you want to record from the dropdown below:")
 
@@ -96,12 +96,12 @@ class VideoTimeLapse:
                 screenshot = cv2.rectangle(screenshot, (0, 0), (screenshot.shape[1], screenshot.shape[0]), (0, 255, 0), 10)
             col.image(screenshot, use_column_width=True)
 
-            col.button(f"Select Monitor {i + 1}", on_click=lambda x=i: self.update_monitor_state(x), disabled=self.is_recording)
+            col.button(f"Select Monitor {i + 1}", on_click=lambda x=i: self._update_monitor_state(x), disabled=self.is_recording)
 
         # Select the directory to save the video
         st.write("Select the directory to save the video to:")
         save_dir = st.text_input("Save Directory", value=f"{os.getcwd()}", disabled=self.is_recording)
-        self.select_save_dir(save_dir)
+        self._select_save_dir(save_dir)
 
         # Select the fps
         st.write("Select the fps you want the video to have:")
@@ -140,5 +140,5 @@ class VideoTimeLapse:
             await asyncio.sleep(1)
 
     def record(self):
-        self.run()
+        self.display_interface()
         asyncio.run(self.time_lapse_recorder._record_frames_async())
